@@ -428,7 +428,6 @@
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         document.getElementById('canvas-container').appendChild(renderer.domElement);
         
         camera.position.z = 15;
@@ -569,21 +568,17 @@
 
         // Create message in 3D space
         function createMessage(text, mood, country) {
-
-            if (typeof text !== 'string') { console.warn('Invalid text:', text); return; }
-            const isMobile = window.innerWidth < 768;
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
             // Higher resolution for crisp text
-            const scale = isMobile ? 1.6 : 1;
-            canvas.width = 2048 * scale;
-            canvas.height = 1024 * scale;
+            canvas.width = 2048;
+            canvas.height = 1024;
 
             // Transparent background - no rectangle
             context.clearRect(0, 0, canvas.width, canvas.height);
 
             // NO shadow blur - crisp text only
-            context.font = `bold ${80 * scale}px Courier New`;
+            context.font = 'bold 80px Courier New';
             context.fillStyle = `#${moodColors[mood].toString(16).padStart(6, '0')}`;
             context.textAlign = 'center';
             context.textBaseline = 'middle';
@@ -607,10 +602,8 @@ const words = text.split(' ');
             context.fillText(line, canvas.width / 2, y);
 
             const texture = new THREE.CanvasTexture(canvas);
-            texture.generateMipmaps = false;
             texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.NearestFilter;
-            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            texture.magFilter = THREE.LinearFilter;
             
             const material = new THREE.SpriteMaterial({
                 map: texture,
@@ -619,8 +612,7 @@ const words = text.split(' ');
             });
 
             const sprite = new THREE.Sprite(material);
-            const spriteScale = isMobile ? 55 : 35;
-            sprite.scale.set(spriteScale, spriteScale / 2, 1);
+            sprite.scale.set(35, 17.5, 1);
 
             // Random position in orbit around center
             const angle = Math.random() * Math.PI * 2;
@@ -807,7 +799,6 @@ const words = text.split(' ');
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         });
 
         // Load messages on page load
