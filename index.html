@@ -53,6 +53,68 @@
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
             pointer-events: all;
             min-width: 400px;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        #message-form.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-50%) translateY(20px);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #00ffff;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+            transform: rotate(90deg);
+        }
+
+        #add-wish-btn {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            pointer-events: all;
+            transition: all 0.3s;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #add-wish-btn.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #add-wish-btn:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 0 30px #00ffff;
         }
 
         #message-form h2 {
@@ -282,6 +344,7 @@
         </div>
 
         <div id="message-form">
+            <button class="close-btn">×</button>
             <h2>✨ YOUR MESSAGE ✨</h2>
             
             <div class="form-group">
@@ -353,6 +416,8 @@
 
             <button id="send-btn">🚀 Send to Space</button>
         </div>
+
+        <button id="add-wish-btn">✨ Add Another Wish</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -434,6 +499,21 @@
         const sendBtn = document.getElementById('send-btn');
         const countrySelect = document.getElementById('country-select');
         const countryFilter = document.getElementById('country-filter');
+        const messageForm = document.getElementById('message-form');
+        const addWishBtn = document.getElementById('add-wish-btn');
+        const closeBtn = document.querySelector('.close-btn');
+
+        // Close button functionality
+        closeBtn.addEventListener('click', () => {
+            messageForm.classList.add('hidden');
+            addWishBtn.classList.add('visible');
+        });
+
+        // Add wish button functionality
+        addWishBtn.addEventListener('click', () => {
+            messageForm.classList.remove('hidden');
+            addWishBtn.classList.remove('visible');
+        });
 
         messageInput.addEventListener('input', () => {
             charCounter.textContent = messageInput.value.length;
@@ -536,15 +616,18 @@
             // Create message locally
             createMessage(text, selectedMood, country);
 
-            // Send to n8n webhook
-fetch('https://n8n-production-d2b9.up.railway.app/webhook/save-message', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, mood: selectedMood, country })
-});
+            // TODO: Send to n8n webhook here
+            console.log('Sending message:', { text, mood: selectedMood, country });
+
             // Reset form
             messageInput.value = '';
             charCounter.textContent = '0';
+            countrySelect.value = '';
+            
+            // Hide form and show "Add another wish" button
+            messageForm.classList.add('hidden');
+            addWishBtn.classList.add('visible');
+            
             alert('Your message has been sent to space! ✨');
         });
 
