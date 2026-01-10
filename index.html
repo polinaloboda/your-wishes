@@ -284,60 +284,6 @@
             color: #00ffff;
             margin-top: 5px;
         }
-
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            #filter-container {
-                top: 15px;
-                left: 15px;
-            }
-
-            #filter-container label {
-                font-size: 10px;
-            }
-
-            #country-filter {
-                padding: 8px 15px;
-                font-size: 12px;
-            }
-
-            #message-form {
-                bottom: 20px;
-                min-width: 90%;
-                padding: 20px;
-                left: 50%;
-            }
-
-            #message-form h2 {
-                font-size: 18px;
-            }
-
-            .form-group label {
-                font-size: 12px;
-            }
-
-            .form-group input,
-            .form-group select {
-                padding: 8px;
-                font-size: 14px;
-            }
-
-            .mood-btn {
-                padding: 10px;
-                font-size: 12px;
-            }
-
-            #send-btn {
-                padding: 12px;
-                font-size: 14px;
-            }
-
-            #add-wish-btn {
-                bottom: 20px;
-                padding: 12px 25px;
-                font-size: 14px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -739,11 +685,8 @@
         async function loadMessages(country = 'all') {
             try {
                 const url = `https://n8n-production-d2b9.up.railway.app/webhook/get-messages?country=${country}`;
-                console.log('Loading messages from:', url);
                 const response = await fetch(url);
                 const data = await response.json();
-                
-                console.log('Received data:', data);
                 
                 // Clear existing messages ALWAYS
                 messages.forEach(msg => {
@@ -755,21 +698,16 @@
                 
                 // Check if empty response
                 if (data.empty || !Array.isArray(data) || data.length === 0) {
-                    console.log('No messages to display');
+                    // Screen stays empty
                     return;
                 }
                 
-                // Create messages from data with validation
+                // Create messages from data
                 data.forEach(msg => {
-                    console.log('Processing message:', msg);
-                    if (msg.Message && msg.Mood && msg.Country && typeof msg.Message === 'string') {
+                    if (msg.Message && msg.Mood && msg.Country) {
                         createMessage(msg.Message, msg.Mood.toLowerCase(), msg.Country);
-                    } else {
-                        console.warn('Skipping invalid message:', msg);
                     }
                 });
-                
-                console.log('Total messages created:', messages.length);
             } catch (err) {
                 console.error('Failed to load messages:', err);
                 // Clear screen even on error
