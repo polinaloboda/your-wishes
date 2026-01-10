@@ -653,15 +653,17 @@
                 return;
             }
 
-            // Create message locally
-            createMessage(text, selectedMood, country);
-
             // Send to n8n webhook
             fetch('https://n8n-production-d2b9.up.railway.app/webhook/save-message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, mood: selectedMood, country })
-            }).catch(err => console.error('Failed to save message:', err));
+            })
+            .then(() => {
+                // Reload messages after successful save
+                setTimeout(() => loadMessages(countryFilter.value), 500);
+            })
+            .catch(err => console.error('Failed to save message:', err));
 
             // Reset form
             messageInput.value = '';
@@ -675,27 +677,31 @@
             alert('Your message has been sent to space! ✨');
         });
 
-        // Filter messages by country and limit to 40
-        function updateVisibleMessages() {
-            const filterValue = countryFilter.value;
-            let visibleMessages = messages;
-
-            // Filter by country if selected
-            if (filterValue !== 'all') {
-                visibleMessages = messages.filter(msg => msg.country === filterValue);
+        // Load messages from n8n
+        async function loadMessages(country = 'all') {
+            try {
+                const url = `https://n8n-production-d2b9.up.railway.app/webhook/get-messages${country !== 'all' ? '?country=' + country : ''}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Clear existing messages
+                messages.forEach(msg => scene.remove(msg.sprite));
+                messages = [];
+                
+                // Create messages from data
+                data.forEach(msg => {
+                    if (msg.Message && msg.Mood && msg.Country) {
+                        createMessage(msg.Message, msg.Mood.toLowerCase(), msg.Country);
+                    }
+                });
+            } catch (err) {
+                console.error('Failed to load messages:', err);
             }
-
-            // Hide all first
-            messages.forEach(msg => msg.sprite.visible = false);
-
-            // Show only last 40 of filtered messages
-            const messagesToShow = visibleMessages.slice(-40);
-            messagesToShow.forEach(msg => msg.sprite.visible = true);
         }
 
         // Filter messages
         countryFilter.addEventListener('change', () => {
-            updateVisibleMessages();
+            loadMessages(countryFilter.value);
         });
 
         // Mouse interaction
@@ -758,9 +764,6 @@
                 if (msg.sprite.position.y < -20) msg.verticalSpeed = Math.abs(msg.verticalSpeed);
             });
 
-            // Update visibility based on filter and limit
-            updateVisibleMessages();
-
             renderer.render(scene, camera);
         }
 
@@ -771,18 +774,8 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Add some demo messages
-        setTimeout(() => {
-            createMessage('Hope for peace ✌️', 'hope', 'Ukraine');
-        }, 1000);
-
-        setTimeout(() => {
-            createMessage('Love conquers all 💜', 'love', 'Spain');
-        }, 3000);
-
-        setTimeout(() => {
-            createMessage('Dream big! ⭐', 'dream', 'Poland');
-        }, 5000);
+        // Load messages on page load
+        loadMessages('all');
 
         animate();
     </script>
