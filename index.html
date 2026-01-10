@@ -584,7 +584,6 @@
 
             // NO shadow blur - crisp text only
             context.font = `bold ${80 * scale}px Courier New`;
-            context.scale(scale, scale);
             context.fillStyle = `#${moodColors[mood].toString(16).padStart(6, '0')}`;
             context.textAlign = 'center';
             context.textBaseline = 'middle';
