@@ -452,34 +452,70 @@
         const stars = new THREE.Points(starsGeometry, starsMaterial);
         scene.add(stars);
 
-        // Planets
-        const planetGeometry = new THREE.SphereGeometry(2, 32, 32);
+        // Planets with better visuals
+        const planetGeometry = new THREE.SphereGeometry(4, 32, 32);
         
         const planet1Material = new THREE.MeshBasicMaterial({
             color: 0x4169e1,
             wireframe: false
         });
         const planet1 = new THREE.Mesh(planetGeometry, planet1Material);
-        planet1.position.set(-20, 5, -30);
+        planet1.position.set(-25, 8, -40);
         scene.add(planet1);
 
-        const planet2Geometry = new THREE.SphereGeometry(1.5, 32, 32);
+        // Add ring to planet 1 (Saturn style)
+        const ringGeometry1 = new THREE.RingGeometry(5, 7, 32);
+        const ringMaterial1 = new THREE.MeshBasicMaterial({
+            color: 0x88aaff,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.6
+        });
+        const ring1 = new THREE.Mesh(ringGeometry1, ringMaterial1);
+        ring1.rotation.x = Math.PI / 2.5;
+        planet1.add(ring1);
+
+        const planet2Geometry = new THREE.SphereGeometry(3, 32, 32);
         const planet2Material = new THREE.MeshBasicMaterial({
             color: 0xff69b4,
             wireframe: false
         });
         const planet2 = new THREE.Mesh(planet2Geometry, planet2Material);
-        planet2.position.set(15, -8, -25);
+        planet2.position.set(20, -10, -35);
         scene.add(planet2);
 
-        const planet3Geometry = new THREE.SphereGeometry(2.5, 32, 32);
+        // Add ring to planet 2
+        const ringGeometry2 = new THREE.RingGeometry(4, 5.5, 32);
+        const ringMaterial2 = new THREE.MeshBasicMaterial({
+            color: 0xffaacc,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.5
+        });
+        const ring2 = new THREE.Mesh(ringGeometry2, ringMaterial2);
+        ring2.rotation.x = Math.PI / 3;
+        planet2.add(ring2);
+
+        const planet3Geometry = new THREE.SphereGeometry(5, 32, 32);
         const planet3Material = new THREE.MeshBasicMaterial({
             color: 0x9370db,
             wireframe: false
         });
         const planet3 = new THREE.Mesh(planet3Geometry, planet3Material);
-        planet3.position.set(0, 10, -40);
+        planet3.position.set(0, 15, -50);
         scene.add(planet3);
+
+        // Add ring to planet 3
+        const ringGeometry3 = new THREE.RingGeometry(6.5, 9, 32);
+        const ringMaterial3 = new THREE.MeshBasicMaterial({
+            color: 0xbb88ff,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.7
+        });
+        const ring3 = new THREE.Mesh(ringGeometry3, ringMaterial3);
+        ring3.rotation.x = Math.PI / 2.2;
+        planet3.add(ring3);
 
         // Messages array
         let messages = [];
@@ -534,28 +570,32 @@
         function createMessage(text, mood, country) {
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
-            canvas.width = 512;
-            canvas.height = 256;
+            canvas.width = 1024;
+            canvas.height = 512;
 
-            context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            // Add glow background
+            context.shadowBlur = 20;
+            context.shadowColor = `#${moodColors[mood].toString(16).padStart(6, '0')}`;
+            
+            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
             context.fillRect(0, 0, canvas.width, canvas.height);
 
-            context.font = 'bold 24px Courier New';
+            context.font = 'bold 48px Courier New';
             context.fillStyle = `#${moodColors[mood].toString(16).padStart(6, '0')}`;
             context.textAlign = 'center';
             context.textBaseline = 'middle';
             
             const words = text.split(' ');
             let line = '';
-            let y = canvas.height / 2 - 20;
+            let y = canvas.height / 2 - 40;
             
             words.forEach((word, i) => {
                 const testLine = line + word + ' ';
                 const metrics = context.measureText(testLine);
-                if (metrics.width > canvas.width - 40 && i > 0) {
+                if (metrics.width > canvas.width - 80 && i > 0) {
                     context.fillText(line, canvas.width / 2, y);
                     line = word + ' ';
-                    y += 30;
+                    y += 60;
                 } else {
                     line = testLine;
                 }
@@ -569,13 +609,13 @@
             });
 
             const sprite = new THREE.Sprite(material);
-            sprite.scale.set(8, 4, 1);
+            sprite.scale.set(25, 12.5, 1);
 
-            // Random starting position
+            // Random starting position - much further away
             sprite.position.set(
+                (Math.random() - 0.5) * 60,
                 (Math.random() - 0.5) * 40,
-                (Math.random() - 0.5) * 30,
-                -50
+                -100
             );
 
             const messageData = {
@@ -584,12 +624,12 @@
                 mood: mood,
                 country: country,
                 velocity: {
-                    x: (Math.random() - 0.5) * 0.1,
-                    y: (Math.random() - 0.5) * 0.1,
-                    z: 0.15
+                    x: (Math.random() - 0.5) * 0.2,
+                    y: (Math.random() - 0.5) * 0.2,
+                    z: 0.4  // Much faster forward movement
                 },
                 lifetime: 0,
-                maxLifetime: 60 * 2 // 60 seconds at 60fps
+                maxLifetime: 60 * 10 // 10 seconds at 60fps - longer visible time
             };
 
             scene.add(sprite);
@@ -616,8 +656,12 @@
             // Create message locally
             createMessage(text, selectedMood, country);
 
-            // TODO: Send to n8n webhook here
-            console.log('Sending message:', { text, mood: selectedMood, country });
+            // Send to n8n webhook
+            fetch('https://n8n-production-d2b9.up.railway.app/webhook/save-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, mood: selectedMood, country })
+            }).catch(err => console.error('Failed to save message:', err));
 
             // Reset form
             messageInput.value = '';
