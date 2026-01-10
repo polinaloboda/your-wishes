@@ -688,9 +688,19 @@
                 const response = await fetch(url);
                 const data = await response.json();
                 
-                // Clear existing messages
-                messages.forEach(msg => scene.remove(msg.sprite));
+                // Clear existing messages ALWAYS
+                messages.forEach(msg => {
+                    scene.remove(msg.sprite);
+                    if (msg.sprite.material.map) msg.sprite.material.map.dispose();
+                    msg.sprite.material.dispose();
+                });
                 messages = [];
+                
+                // Check if empty response
+                if (data.empty || !Array.isArray(data) || data.length === 0) {
+                    // Screen stays empty
+                    return;
+                }
                 
                 // Create messages from data
                 data.forEach(msg => {
@@ -700,6 +710,9 @@
                 });
             } catch (err) {
                 console.error('Failed to load messages:', err);
+                // Clear screen even on error
+                messages.forEach(msg => scene.remove(msg.sprite));
+                messages = [];
             }
         }
 
