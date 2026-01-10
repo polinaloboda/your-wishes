@@ -583,7 +583,8 @@
             context.textAlign = 'center';
             context.textBaseline = 'middle';
             
-            const words = text.split(' ');
+            if (typeof text !== 'string') { console.warn('Invalid text:', text); return; }
+const words = text.split(' ');
             let line = '';
             let y = canvas.height / 2 - 60;
             
@@ -697,10 +698,9 @@
                 messages = [];
                 
                 // Check if empty response
-                if (data.empty || !Array.isArray(data) || data.length === 0) {
-                    // Screen stays empty
-                    return;
-                }
+                if (!Array.isArray(data)) { console.warn('Invalid data:', data); return; }
+                if (data.length === 0) return;
+                if (data[0]?.empty === true) return;
                 
                 // Create messages from data
                 data.forEach(msg => {
