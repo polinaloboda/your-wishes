@@ -573,14 +573,14 @@
             canvas.width = 1024;
             canvas.height = 512;
 
-            // Add glow background
-            context.shadowBlur = 20;
+            // Transparent background - no rectangle
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Add glow effect
+            context.shadowBlur = 30;
             context.shadowColor = `#${moodColors[mood].toString(16).padStart(6, '0')}`;
             
-            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
-            context.fillRect(0, 0, canvas.width, canvas.height);
-
-            context.font = 'bold 48px Courier New';
+            context.font = 'bold 56px Courier New';
             context.fillStyle = `#${moodColors[mood].toString(16).padStart(6, '0')}`;
             context.textAlign = 'center';
             context.textBaseline = 'middle';
@@ -595,7 +595,7 @@
                 if (metrics.width > canvas.width - 80 && i > 0) {
                     context.fillText(line, canvas.width / 2, y);
                     line = word + ' ';
-                    y += 60;
+                    y += 70;
                 } else {
                     line = testLine;
                 }
@@ -609,13 +609,15 @@
             });
 
             const sprite = new THREE.Sprite(material);
-            sprite.scale.set(25, 12.5, 1);
+            sprite.scale.set(30, 15, 1);
 
-            // Random starting position - much further away
+            // Random position in orbit around center
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 40 + Math.random() * 20;
             sprite.position.set(
-                (Math.random() - 0.5) * 60,
-                (Math.random() - 0.5) * 40,
-                -100
+                Math.cos(angle) * radius,
+                (Math.random() - 0.5) * 30,
+                Math.sin(angle) * radius - 30
             );
 
             const messageData = {
@@ -623,13 +625,11 @@
                 text: text,
                 mood: mood,
                 country: country,
-                velocity: {
-                    x: (Math.random() - 0.5) * 0.2,
-                    y: (Math.random() - 0.5) * 0.2,
-                    z: 0.4  // Much faster forward movement
-                },
-                lifetime: 0,
-                maxLifetime: 60 * 10 // 10 seconds at 60fps - longer visible time
+                angle: angle,
+                radius: radius,
+                verticalSpeed: (Math.random() - 0.5) * 0.02,
+                orbitSpeed: 0.003 + Math.random() * 0.002,
+                id: Date.now() + Math.random() // Unique ID
             };
 
             scene.add(sprite);
@@ -675,17 +675,27 @@
             alert('Your message has been sent to space! ✨');
         });
 
+        // Filter messages by country and limit to 40
+        function updateVisibleMessages() {
+            const filterValue = countryFilter.value;
+            let visibleMessages = messages;
+
+            // Filter by country if selected
+            if (filterValue !== 'all') {
+                visibleMessages = messages.filter(msg => msg.country === filterValue);
+            }
+
+            // Hide all first
+            messages.forEach(msg => msg.sprite.visible = false);
+
+            // Show only last 40 of filtered messages
+            const messagesToShow = visibleMessages.slice(-40);
+            messagesToShow.forEach(msg => msg.sprite.visible = true);
+        }
+
         // Filter messages
         countryFilter.addEventListener('change', () => {
-            const filterValue = countryFilter.value;
-            
-            messages.forEach(msg => {
-                if (filterValue === 'all' || msg.country === filterValue) {
-                    msg.sprite.visible = true;
-                } else {
-                    msg.sprite.visible = false;
-                }
-            });
+            updateVisibleMessages();
         });
 
         // Mouse interaction
@@ -735,27 +745,21 @@
             planet2.rotation.y += 0.008;
             planet3.rotation.y += 0.003;
 
-            // Update messages
-            messages = messages.filter(msg => {
-                msg.lifetime++;
+            // Update messages - no deletion, just orbital movement
+            messages.forEach(msg => {
+                // Orbital movement
+                msg.angle += msg.orbitSpeed;
+                msg.sprite.position.x = Math.cos(msg.angle) * msg.radius;
+                msg.sprite.position.z = Math.sin(msg.angle) * msg.radius - 30;
+                msg.sprite.position.y += msg.verticalSpeed;
 
-                if (msg.lifetime >= msg.maxLifetime) {
-                    scene.remove(msg.sprite);
-                    return false;
-                }
-
-                msg.sprite.position.x += msg.velocity.x;
-                msg.sprite.position.y += msg.velocity.y;
-                msg.sprite.position.z += msg.velocity.z;
-
-                // Fade out at end
-                if (msg.lifetime > msg.maxLifetime * 0.8) {
-                    const fadeProgress = (msg.lifetime - msg.maxLifetime * 0.8) / (msg.maxLifetime * 0.2);
-                    msg.sprite.material.opacity = 1 - fadeProgress;
-                }
-
-                return true;
+                // Keep vertical position in bounds
+                if (msg.sprite.position.y > 20) msg.verticalSpeed = -Math.abs(msg.verticalSpeed);
+                if (msg.sprite.position.y < -20) msg.verticalSpeed = Math.abs(msg.verticalSpeed);
             });
+
+            // Update visibility based on filter and limit
+            updateVisibleMessages();
 
             renderer.render(scene, camera);
         }
