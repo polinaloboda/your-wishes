@@ -570,32 +570,30 @@
         function createMessage(text, mood, country) {
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
-            canvas.width = 1024;
-            canvas.height = 512;
+            // Higher resolution for crisp text
+            canvas.width = 2048;
+            canvas.height = 1024;
 
             // Transparent background - no rectangle
             context.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Add glow effect
-            context.shadowBlur = 30;
-            context.shadowColor = `#${moodColors[mood].toString(16).padStart(6, '0')}`;
-            
-            context.font = 'bold 56px Courier New';
+            // NO shadow blur - crisp text only
+            context.font = 'bold 80px Courier New';
             context.fillStyle = `#${moodColors[mood].toString(16).padStart(6, '0')}`;
             context.textAlign = 'center';
             context.textBaseline = 'middle';
             
             const words = text.split(' ');
             let line = '';
-            let y = canvas.height / 2 - 40;
+            let y = canvas.height / 2 - 60;
             
             words.forEach((word, i) => {
                 const testLine = line + word + ' ';
                 const metrics = context.measureText(testLine);
-                if (metrics.width > canvas.width - 80 && i > 0) {
+                if (metrics.width > canvas.width - 160 && i > 0) {
                     context.fillText(line, canvas.width / 2, y);
                     line = word + ' ';
-                    y += 70;
+                    y += 100;
                 } else {
                     line = testLine;
                 }
@@ -603,13 +601,17 @@
             context.fillText(line, canvas.width / 2, y);
 
             const texture = new THREE.CanvasTexture(canvas);
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            
             const material = new THREE.SpriteMaterial({
                 map: texture,
-                transparent: true
+                transparent: true,
+                opacity: 0
             });
 
             const sprite = new THREE.Sprite(material);
-            sprite.scale.set(30, 15, 1);
+            sprite.scale.set(35, 17.5, 1);
 
             // Random position in orbit around center
             const angle = Math.random() * Math.PI * 2;
@@ -629,7 +631,9 @@
                 radius: radius,
                 verticalSpeed: (Math.random() - 0.5) * 0.02,
                 orbitSpeed: 0.003 + Math.random() * 0.002,
-                id: Date.now() + Math.random() // Unique ID
+                id: Date.now() + Math.random(),
+                fadeIn: true,
+                fadeProgress: 0
             };
 
             scene.add(sprite);
@@ -753,6 +757,16 @@
 
             // Update messages - no deletion, just orbital movement
             messages.forEach(msg => {
+                // Fade in animation for new messages
+                if (msg.fadeIn && msg.fadeProgress < 1) {
+                    msg.fadeProgress += 0.02;
+                    msg.sprite.material.opacity = msg.fadeProgress;
+                    if (msg.fadeProgress >= 1) {
+                        msg.fadeIn = false;
+                        msg.sprite.material.opacity = 1;
+                    }
+                }
+
                 // Orbital movement
                 msg.angle += msg.orbitSpeed;
                 msg.sprite.position.x = Math.cos(msg.angle) * msg.radius;
