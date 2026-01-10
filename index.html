@@ -536,9 +536,12 @@
             // Create message locally
             createMessage(text, selectedMood, country);
 
-            // TODO: Send to n8n webhook here
-            console.log('Sending message:', { text, mood: selectedMood, country });
-
+            // Send to n8n webhook
+fetch('https://n8n-production-d2b9.up.railway.app/webhook/save-message', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, mood: selectedMood, country })
+});
             // Reset form
             messageInput.value = '';
             charCounter.textContent = '0';
