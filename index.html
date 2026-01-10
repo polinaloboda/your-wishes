@@ -684,7 +684,7 @@
         // Load messages from n8n
         async function loadMessages(country = 'all') {
             try {
-                const url = `https://n8n-production-d2b9.up.railway.app/webhook/get-messages${country !== 'all' ? '?country=' + country : ''}`;
+                const url = `https://n8n-production-d2b9.up.railway.app/webhook/get-messages?country=${country}`;
                 const response = await fetch(url);
                 const data = await response.json();
                 
