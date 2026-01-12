@@ -548,7 +548,20 @@
                 grid-template-columns: 1fr;
             }
         }
-    </style>
+    
+/* ===== UNIVERSAL MOBILE LAYOUT ENGINE ===== */
+@media (max-width: 520px) {
+  :root { --ui-scale: clamp(0.85, 100vw / 420, 1); }
+  body { overflow-x: hidden; }
+  #ui-container { transform: scale(var(--ui-scale)); transform-origin: top center; }
+  #filter-container { width:96vw; left:50%; transform:translateX(-50%); flex-wrap:wrap; justify-content:center; gap:.6rem; }
+  #prediction-btn,#country-filter,#wish-counter { height:42px; padding:0 .9rem; font-size:.75rem; white-space:nowrap; }
+  #message-form { width:95vw; bottom: env(safe-area-inset-bottom, 12px); }
+  #add-wish-btn { bottom: env(safe-area-inset-bottom, 12px); }
+  canvas { width:100vw!important; height:100vh!important; }
+}
+
+</style>
 </head>
 <body>
     <div id="canvas-container"></div>
