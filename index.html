@@ -291,6 +291,43 @@
             outline: none;
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
         }
+        
+        /* ===== CUSTOM SELECT ARROW FIX ака Залупа Лягушки ===== */
+        
+        #filter-wrapper {
+  position: relative;
+}
+
+#country-filter {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 40px; /*fiksirovannoye mesto dlya strelochki*/
+}
+
+#filter-wrapper {
+  position: relative;
+}
+
+#filter-wrapper::after {
+  content: "▾";
+  position: absolute;
+  right: 15px;
+
+  /* tuta */
+  bottom: 15px;
+
+  color: #00ffff;
+  font-size: 14px;
+  pointer-events: none;
+  text-shadow: 0 0 6px rgba(0,255,255,0.8);
+  line-height: 1;
+}
+
+#country-filter:focus {
+  outline: none;
+}
+
 
         #prediction-btn {
             padding: 12px 20px;
@@ -571,9 +608,9 @@
             <button id="prediction-btn" title="Get your daily prediction">Prediction</button>
             
             <div id="filter-wrapper">
-                <label for="country-filter">FILTER BY COUNTRY:</label>
+                <label for="country-filter"> </label>
                 <select id="country-filter">
-                <option value="all">All European Countries</option>
+                <option value="all">ALL COUNTRIES</option>
                 <option value="Albania">Albania</option>
                 <option value="Andorra">Andorra</option>
                 <option value="Austria">Austria</option>
@@ -624,7 +661,7 @@
             <div id="wish-counter">💫 0</div>
         </div>
 
-        <button id="add-wish-btn">✨ ADD ANOTHER WISH</button>
+        <button id="add-wish-btn">✨ ADD YOUR WISH</button>
 
         <form id="message-form">
             <button type="button" class="close-btn">×</button>
